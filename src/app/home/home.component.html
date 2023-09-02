@@ -1,22 +1,24 @@
-<div class="row center">
-    <section class="logo">
-      <a class="title" href="https://github.com/stefano2007">
-        <i class="fa-brands fa-github me-2"></i>
-        <h1>Github Profile Explores</h1>
+<div class="row my-2">
+    <div class="col-lg-3 col-md-4 logo">
+      <a class="btn title" href="https://github.com/stefano2007">
+        <span>
+          <i class="fa-brands fa-github"></i>
+          Github Profile Explores
+        </span>
       </a>
-    </section>
-    <section class="search">
+    </div>
+    <div class="col-lg-9 col-md-8 search">
       <form class="search-form">
-        <input type="search"
-        class="searchBox roundedBox"
-        name="input-search"
-        [(ngModel)]="searchText"
-        (keydown.enter)="searchSubmit()"
-        />
-        <button type="button" class="btn btn-link" name="submit-search" aria-label="submit search"
-          (click)="searchSubmit()">
-          <i class="fas fa-search fa-lg"></i>
-        </button>
+        <div class="input-group">
+          <input type="search" class="form-control" name="input-search"
+          [(ngModel)]="searchText"
+          (keydown.enter)="searchSubmit()"
+          />
+          <button type="button" class="btn btn-dark" name="submit-search" aria-label="submit search"
+            (click)="searchSubmit()">
+            <i class="fas fa-search fa-lg"></i>
+          </button>
+        </div>
       </form>
-    </section>
+    </div>
 </div>

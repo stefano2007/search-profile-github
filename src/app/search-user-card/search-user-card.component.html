@@ -1,0 +1,35 @@
+<div class="card" *ngIf="user != null">
+  <div class="card-body">
+    <div class="d-flex">
+      <img src="{{user.avatar_url}}" alt="{{user.name}}" class="rounded-circle">
+      <div class="px-3">
+        <h5 class="card-title">
+          <a [href]="user.html_url">
+            {{user.name}}
+          </a>
+          <a class="btn" [href]="user.html_url">
+            {{user.login}}
+          </a>
+        </h5>
+        <p *ngIf="user.bio" class="card-text">
+           {{user.bio}}
+        </p>
+        <div class="d-flex flex-wrap text-small">
+          <div class="me-3">Followers: {{ user.followers }}</div>
+          <div class="me-3">Following: {{ user.following }}</div>
+          <div class="me-3">Repositories public: {{ user.public_repos }}</div>
+        </div>
+        <div class="d-flex text-muted">
+          <div class="text-small">
+            <div *ngIf="user.location"
+              tooltip="user location"
+              class="me-4">
+              <i class="fa-solid fa-location-dot"></i>
+              {{ user.location }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

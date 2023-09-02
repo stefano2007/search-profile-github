@@ -40,7 +40,7 @@ export class GithubService {
 
   getUserByUsername(username: string): Observable<User>{
     return this.httpClient
-      .get<User>(`${environment.url_API}/user/${username}`,{
+      .get<User>(`${environment.url_API}/users/${username}`,{
         headers: this.headersRequest
       })
       .pipe(
