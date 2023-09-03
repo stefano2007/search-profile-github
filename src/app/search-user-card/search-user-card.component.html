@@ -19,15 +19,19 @@
           <div class="me-3">Following: {{ user.following }}</div>
           <div class="me-3">Repositories public: {{ user.public_repos }}</div>
         </div>
-        <div class="d-flex text-muted">
-          <div class="text-small">
-            <div *ngIf="user.location"
+        <div class="d-flex text-muted text-small">
+          <div *ngIf="user.location"
               tooltip="user location"
               class="me-4">
               <i class="fa-solid fa-location-dot"></i>
               {{ user.location }}
-            </div>
           </div>
+          <div *ngIf="countStars != null && countStars > 0"
+            tooltip="user Stars"
+            class="me-4">
+            <i class="fa-solid fa-star"></i>
+            {{ countStars }}
+            </div>
         </div>
       </div>
     </div>

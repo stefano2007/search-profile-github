@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 import { Observable, throwError } from 'rxjs';
-import { catchError, retry } from 'rxjs/operators';
+import { catchError, retry, tap } from 'rxjs/operators';
 import { User } from '../interfaces/user';
 import { UserSearch } from '../interfaces/user-search';
 
@@ -47,6 +47,33 @@ export class GithubService {
         retry(0),
         catchError(this.handleError)
       );
+  }
+
+  getStarsByUsername(username: string): Observable<any> {
+    //TODO: Tenta Obter a primeira estrela, caso exista no header campo Link terá a ultima, pagina correspondente a numero de estrelas já que pedimos 1 registro por pagina.
+    return this.httpClient
+      .get<any>(`${environment.url_API}/users/${username}/starred?per_page=1`,{
+        observe: 'response',
+        headers: this.headersRequest
+      })
+      .pipe(
+        retry(0),
+        catchError(this.handleError)
+      );
+  }
+
+  calcStars(headerLink: string) : string{
+    let urlLastPage = headerLink?.split(',')[1];
+    if(!urlLastPage){
+      return '0';
+    }
+
+    //TODO: Revisar logica
+    urlLastPage = urlLastPage.split(';')[0]?.replace('<','').replace('>','');
+
+    let starsCount = urlLastPage.replace(/.*&page=(.*)/, '$1').trim()
+
+    return starsCount;
   }
 
   // Error handling

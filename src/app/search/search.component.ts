@@ -39,7 +39,6 @@ constructor(private route : ActivatedRoute,
         .subscribe((response: UserSearch) => {
             this.userSearch = response;
             this.closeLoading();
-            console.log('response', response)
         });
         // TODO: verificar metod caso der erro fechar o loading
 
@@ -49,7 +48,7 @@ constructor(private route : ActivatedRoute,
   closeLoading() : void {
     setTimeout(() => {
       this.isLoading = false;
-    }, 400);
+    }, 500);
   }
 
 }

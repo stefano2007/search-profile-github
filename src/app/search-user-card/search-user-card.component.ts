@@ -1,6 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { User } from '../shared/interfaces/user';
 import { GithubService } from '../shared/services/github.service.service';
+import { tap } from 'rxjs';
 
 @Component({
   selector: 'app-search-user-card',
@@ -13,10 +14,11 @@ export class SearchUserCardComponent implements OnInit {
 
   user : User | undefined;
 
+  countStars : number | null = null;
+
   constructor(private githubService : GithubService){}
 
   ngOnInit(): void {
-    console.log('OnInit card');
     this.getUserByUserName();
   }
 
@@ -28,7 +30,18 @@ export class SearchUserCardComponent implements OnInit {
         .getUserByUsername(this.username.trim())
         .subscribe((response: User) => {
             this.user = response;
-            console.log('getUserByUsername', response)
+            this.getStarsUsername();
         });
+  }
+
+  getStarsUsername(){
+    this.githubService
+        .getStarsByUsername(this.username.trim())
+        .pipe(
+          tap((response) => {
+            let headerLink =  response.headers.get('Link')
+            this.countStars = + this.githubService.calcStars(headerLink);
+        })
+        ).subscribe();
   }
 }
