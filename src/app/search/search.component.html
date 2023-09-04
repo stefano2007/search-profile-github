@@ -31,7 +31,10 @@
   </div>
   <div *ngIf="!isLoading">
     <div class="row my-3" *ngFor="let item of userSearch.items">
-      <app-search-user-card [username]="item.login"></app-search-user-card>
+      <app-search-user-card
+      [username]="item.login"
+      (callbackSetStars)="setStars($event)"
+      (callbackSetRepos)="setRepositories($event)"></app-search-user-card>
     </div>
  </div>
 </div>

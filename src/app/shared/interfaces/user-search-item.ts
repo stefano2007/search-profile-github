@@ -1,3 +1,5 @@
+import { UserRepos } from "./user-repos";
+
 export interface UserSearchItem {
   login: string;
   id: number;
@@ -18,4 +20,8 @@ export interface UserSearchItem {
   type: string;
   site_admin: boolean;
   score: number;
+  /* campo auxiliares */
+  starsQuantity: number;
+  reposQuantity: number;
+  repos : UserRepos[];
 }

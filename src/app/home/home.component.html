@@ -1,20 +1,20 @@
-<div class="row my-2">
-    <div class="col-lg-3 col-md-4 logo">
-      <a class="btn title" href="https://github.com/stefano2007">
-        <span>
-          <i class="fa-brands fa-github"></i>
-          Github Profile Explores
-        </span>
-      </a>
-    </div>
-    <div class="col-lg-9 col-md-8 search">
-      <form class="search-form">
+<div class="row my-5">
+    <div class="col search">
+      <div class="d-flex justify-content-center">
+        <a class="btn title" href="https://github.com/stefano2007">
+          <span>
+            <i class="fa-brands fa-github"></i>
+            Github Profile Explore
+          </span>
+        </a>
+      </div>
+      <form class="search-form my-2">
         <div class="input-group">
           <input type="search" class="form-control" name="input-search"
           [(ngModel)]="searchText"
           (keydown.enter)="searchSubmit()"
           />
-          <button type="button" class="btn btn-dark" name="submit-search" aria-label="submit search"
+          <button type="button" class="btn btn-dark btn-lg" name="submit-search" aria-label="submit search"
             (click)="searchSubmit()">
             <i class="fas fa-search fa-lg"></i>
           </button>

@@ -1,4 +1,5 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { UserRepos } from './../shared/interfaces/user-repos';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { User } from '../shared/interfaces/user';
 import { GithubService } from '../shared/services/github.service.service';
 import { tap } from 'rxjs';
@@ -11,6 +12,8 @@ import { tap } from 'rxjs';
 export class SearchUserCardComponent implements OnInit {
 
   @Input() username :string = '';
+  @Output() callbackSetStars = new EventEmitter();
+  @Output() callbackSetRepos = new EventEmitter();
 
   user : User | undefined;
 
@@ -30,18 +33,30 @@ export class SearchUserCardComponent implements OnInit {
         .getUserByUsername(this.username.trim())
         .subscribe((response: User) => {
             this.user = response;
-            this.getStarsUsername();
+            this.getStarsByUsername();
+            this.getRepositoriesByUsername();
         });
   }
 
-  getStarsUsername(){
+  getStarsByUsername(){
     this.githubService
         .getStarsByUsername(this.username.trim())
         .pipe(
           tap((response) => {
             let headerLink =  response.headers.get('Link')
-            this.countStars = + this.githubService.calcStars(headerLink);
+            this.countStars = +this.githubService.calcStars(headerLink);
+
+            this.callbackSetStars.emit({ username: this.username, quantity: (this.countStars || 0) });
         })
         ).subscribe();
   }
+
+  getRepositoriesByUsername(){
+    this.githubService
+    .getRepositoriesByUsername(this.username.trim())
+    .subscribe((userRepos : UserRepos[]) =>{
+      this.callbackSetRepos.emit({username: this.user?.login, quantity: this.user?.public_repos, repos : userRepos});
+    });
+  }
+
 }

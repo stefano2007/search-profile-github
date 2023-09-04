@@ -5,6 +5,7 @@ import { Observable, throwError } from 'rxjs';
 import { catchError, retry, tap } from 'rxjs/operators';
 import { User } from '../interfaces/user';
 import { UserSearch } from '../interfaces/user-search';
+import { UserRepos } from '../interfaces/user-repos';
 
 @Injectable({
   providedIn: 'root'
@@ -54,6 +55,17 @@ export class GithubService {
     return this.httpClient
       .get<any>(`${environment.url_API}/users/${username}/starred?per_page=1`,{
         observe: 'response',
+        headers: this.headersRequest
+      })
+      .pipe(
+        retry(0),
+        catchError(this.handleError)
+      );
+  }
+
+  getRepositoriesByUsername(username: string): Observable<any> {
+    return this.httpClient
+      .get<UserRepos[]>(`${environment.url_API}/users/${username}/repos`,{
         headers: this.headersRequest
       })
       .pipe(
