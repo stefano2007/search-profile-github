@@ -12,9 +12,6 @@ import { ActivatedRoute } from '@angular/router';
 })
 export class SearchComponent implements OnInit {
   searchText : string='';
-  queryParams : string='';
-  searchReposName : string='';
-
   pageSize: number = 10;
   page: number = 1;
 
@@ -30,8 +27,11 @@ export class SearchComponent implements OnInit {
     { name: "Most recently joined", options: { sort: "joined", order: "desc" } },
     { name: "Least recently joined", options: { sort: "joined", order: "asc" } },
     { name: "Most repositories", options: { sort: "repositories", order: "desc" } },
-    { name: "Fewest repositories", options: { sort: "repositories", order: "asc" } }];
+    { name: "Fewest repositories", options: { sort: "repositories", order: "asc" } }
+  ];
 
+  searchReposName : string='';
+  starIndexFilter : number = 0;
   constructor(private route : ActivatedRoute, private githubService :GithubService){}
 
   ngOnInit(): void {
@@ -44,8 +44,9 @@ export class SearchComponent implements OnInit {
     if(this.searchText.trim().length === 0){
       return;
     }
-
     this.startLoading();
+
+    this.clearInput();
     this.githubService
         .getUsersBySearchQuery(this.searchText, this.pageSize, this.page, this.selectedSort)
         .subscribe((response: UserSearch) => {
@@ -57,6 +58,7 @@ export class SearchComponent implements OnInit {
   }
 
   startLoading = () => this.isLoading = true;
+
   closeLoading() : void {
     setTimeout(() => {
       this.isLoading = false;
@@ -89,18 +91,16 @@ export class SearchComponent implements OnInit {
   }
 
   filterByReposName(){
-    if(this.searchReposName == ''){
-      this.clearFilter();
-      return;
-    }
-
     this.execFilter();
   }
 
   execFilter(){
     let inputReposName = this.searchReposName.trim();
 
-    if(inputReposName == ''){
+    let starsRange = this.getStarsRange(this.starIndexFilter);
+
+    if(inputReposName == '' && starsRange === 0 ){
+        this.clearFilter();
         return;
     }
 
@@ -108,7 +108,13 @@ export class SearchComponent implements OnInit {
     this.userSearch = {...this.userSearchOriginal};
     let itemsTemp = this.userSearch.items;
 
-    itemsTemp = itemsTemp.filter(u => u.repos?.some(repo => repo.name.includes(inputReposName)));
+    if(inputReposName !== ''){
+      itemsTemp = itemsTemp.filter(u => u.repos?.some(repo => repo.name.includes(inputReposName)));
+    }
+
+    if(starsRange > 0){
+      itemsTemp = itemsTemp.filter(u => u.starsQuantity >= starsRange);
+    }
 
     this.userSearch.total_count = itemsTemp.length;
     this.userSearch.items = itemsTemp;
@@ -116,5 +122,30 @@ export class SearchComponent implements OnInit {
 
   clearFilter(){
     this.userSearch = {...this.userSearchOriginal};
+  }
+
+  changeStarFilter(){
+    this.execFilter();
+  }
+
+  getStarsRangeText(){
+    return `>= ${this.getStarsRange(this.starIndexFilter)}`;
+  }
+
+  getStarsRange(num: number): number {
+    switch (num) {
+      case 1: return 10;
+      case 2: return 100;
+      case 3: return 500;
+      case 4: return 1000;
+      case 5: return 10000;
+      case 6: return 100000;
+      default: return 0;
+    }
+  }
+
+  clearInput(){
+    this.searchReposName = '';
+    this.starIndexFilter = 0;
   }
 }

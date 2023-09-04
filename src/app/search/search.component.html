@@ -20,14 +20,23 @@
         </button>
       </div>
       <div class="input-group">
-          <input type="search" class="form-control" name="input-search"
-          [(ngModel)]="searchReposName"
-          (keydown.enter)="filterByReposName()"/>
           <select class="form-select" name="options-sort" [(ngModel)]="selectedSort" (change)="changeSort()" >
               <option *ngFor="let op of sortOptions" [ngValue]="op.options">
                   {{op.name}}
               </option>
           </select>
+      </div>
+      <div class="input-group">
+        <input type="search" class="form-control" name="input-search"
+        [(ngModel)]="searchReposName"
+        (keydown.enter)="filterByReposName()"/>
+
+        <label for="input-stars">
+          <i class="fa-solid fa-star"></i> {{getStarsRangeText()}}
+        </label>
+        <input id="input-stars" name="input-stars" type="range" min="0" max="6" value="0"
+          [(ngModel)]="starIndexFilter"
+          (change)="changeStarFilter()" >
       </div>
     </form>
   </div>
