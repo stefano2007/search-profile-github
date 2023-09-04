@@ -19,14 +19,19 @@ export class GithubService {
     'Authorization': `Bearer ${environment.github_Token}`
   });
 
-  getUsersBySearchQuery(query: string, per_page: number = 10, page: number = 1): Observable<UserSearch>{
-    const queryParams = new HttpParams({
+  getUsersBySearchQuery(query: string, per_page: number, page: number, params_order_by : any): Observable<UserSearch>{
+    let queryParams = new HttpParams({
       fromObject: {
         q: query,
         per_page: per_page,
         page: page
       }
     });
+
+    if(params_order_by){
+      queryParams = queryParams.set('sort', params_order_by.sort);
+      queryParams = queryParams.set('order', params_order_by.order);
+    }
 
     return this.httpClient
       .get<UserSearch>(`${environment.url_API}/search/users`,{

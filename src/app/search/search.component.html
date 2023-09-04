@@ -19,6 +19,16 @@
           <i class="fas fa-search fa-lg"></i>
         </button>
       </div>
+      <div class="input-group">
+          <input type="search" class="form-control" name="input-search"
+          [(ngModel)]="searchReposName"
+          (keydown.enter)="filterByReposName()"/>
+          <select class="form-select" name="options-sort" [(ngModel)]="selectedSort" (change)="changeSort()" >
+              <option *ngFor="let op of sortOptions" [ngValue]="op.options">
+                  {{op.name}}
+              </option>
+          </select>
+      </div>
     </form>
   </div>
 </div>

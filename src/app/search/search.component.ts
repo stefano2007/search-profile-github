@@ -11,13 +11,9 @@ import { ActivatedRoute } from '@angular/router';
   styleUrls: ['./search.component.css']
 })
 export class SearchComponent implements OnInit {
-
-constructor(private route : ActivatedRoute,
-            private githubService :GithubService){
-}
-
   searchText : string='';
   queryParams : string='';
+  searchReposName : string='';
 
   pageSize: number = 10;
   page: number = 1;
@@ -26,6 +22,17 @@ constructor(private route : ActivatedRoute,
   userSearchOriginal? : UserSearch;
 
   isLoading : boolean = false;
+
+  selectedSort: any;
+  sortOptions: any = [
+    { name: "Most followers", options: { sort: "followers", order: "desc" } },
+    { name: "Fewest followers", options: { sort: "followers", order: "asc" } },
+    { name: "Most recently joined", options: { sort: "joined", order: "desc" } },
+    { name: "Least recently joined", options: { sort: "joined", order: "asc" } },
+    { name: "Most repositories", options: { sort: "repositories", order: "desc" } },
+    { name: "Fewest repositories", options: { sort: "repositories", order: "asc" } }];
+
+  constructor(private route : ActivatedRoute, private githubService :GithubService){}
 
   ngOnInit(): void {
     this.searchText = this.route.snapshot.queryParamMap.get('q') ?? '';
@@ -40,7 +47,7 @@ constructor(private route : ActivatedRoute,
 
     this.startLoading();
     this.githubService
-        .getUsersBySearchQuery(this.searchText, this.pageSize, this.page)
+        .getUsersBySearchQuery(this.searchText, this.pageSize, this.page, this.selectedSort)
         .subscribe((response: UserSearch) => {
             this.userSearch = response;
             this.closeLoading();
@@ -75,5 +82,14 @@ constructor(private route : ActivatedRoute,
   changePage(page: number){
     this.page = page;
     this.searchSubmit();
+  }
+
+  changeSort(){
+    console.log('changeSort', this.selectedSort)
+    this.searchSubmit();
+  }
+
+  filterByReposName(){
+    console.log('filterByReposName', this.searchReposName);
   }
 }
