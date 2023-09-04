@@ -19,7 +19,7 @@ export class SearchComponent implements OnInit {
   page: number = 1;
 
   userSearch : UserSearch = { total_count: 0, incomplete_results: false, items: [] };
-  userSearchOriginal? : UserSearch;
+  userSearchOriginal : any = {};
 
   isLoading : boolean = false;
 
@@ -50,10 +50,10 @@ export class SearchComponent implements OnInit {
         .getUsersBySearchQuery(this.searchText, this.pageSize, this.page, this.selectedSort)
         .subscribe((response: UserSearch) => {
             this.userSearch = response;
+            this.userSearchOriginal = this.userSearch;
             this.closeLoading();
         });
         // TODO: verificar metod caso der erro fechar o loading
-
   }
 
   startLoading = () => this.isLoading = true;
@@ -85,11 +85,36 @@ export class SearchComponent implements OnInit {
   }
 
   changeSort(){
-    console.log('changeSort', this.selectedSort)
     this.searchSubmit();
   }
 
   filterByReposName(){
-    console.log('filterByReposName', this.searchReposName);
+    if(this.searchReposName == ''){
+      this.clearFilter();
+      return;
+    }
+
+    this.execFilter();
+  }
+
+  execFilter(){
+    let inputReposName = this.searchReposName.trim();
+
+    if(inputReposName == ''){
+        return;
+    }
+
+    //obter a lista original
+    this.userSearch = {...this.userSearchOriginal};
+    let itemsTemp = this.userSearch.items;
+
+    itemsTemp = itemsTemp.filter(u => u.repos?.some(repo => repo.name.includes(inputReposName)));
+
+    this.userSearch.total_count = itemsTemp.length;
+    this.userSearch.items = itemsTemp;
+  }
+
+  clearFilter(){
+    this.userSearch = {...this.userSearchOriginal};
   }
 }
