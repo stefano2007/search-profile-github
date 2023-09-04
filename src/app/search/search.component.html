@@ -36,5 +36,14 @@
       (callbackSetStars)="setStars($event)"
       (callbackSetRepos)="setRepositories($event)"></app-search-user-card>
     </div>
- </div>
+    <div class="d-flex justify-content-center">
+      <ngb-pagination
+      [(page)]="page"
+      [pageSize]="pageSize"
+      [collectionSize]="userSearch.total_count"
+      (pageChange)="changePage($event)"
+      [maxSize]="5"
+      ></ngb-pagination>
+     </div>
+  </div>
 </div>

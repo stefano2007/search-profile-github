@@ -19,7 +19,7 @@ constructor(private route : ActivatedRoute,
   searchText : string='';
   queryParams : string='';
 
-  per_page: number = 10;
+  pageSize: number = 10;
   page: number = 1;
 
   userSearch : UserSearch = { total_count: 0, incomplete_results: false, items: [] };
@@ -40,7 +40,7 @@ constructor(private route : ActivatedRoute,
 
     this.startLoading();
     this.githubService
-        .getUsersBySearchQuery(this.searchText, this.per_page, this.page)
+        .getUsersBySearchQuery(this.searchText, this.pageSize, this.page)
         .subscribe((response: UserSearch) => {
             this.userSearch = response;
             this.closeLoading();
@@ -66,12 +66,14 @@ constructor(private route : ActivatedRoute,
 
   setRepositories(userRepo: UserCountRepos){
     let index = this.userSearch.items.findIndex(u => u.login == userRepo.username);
-
     if(index >= 0){
       this.userSearch.items[index].reposQuantity = userRepo.quantity;
       this.userSearch.items[index].repos = userRepo.repos;
     }
+  }
 
-    console.log('items', this.userSearch.items)
+  changePage(page: number){
+    this.page = page;
+    this.searchSubmit();
   }
 }

@@ -44,6 +44,10 @@ export class SearchUserCardComponent implements OnInit {
         .pipe(
           tap((response) => {
             let headerLink =  response.headers.get('Link')
+
+            //let stars = headerLink != undefined ? this.githubService.calcStars(headerLink) : response.lenght;
+            //Todo: verfica quando não existir p Header link conta o tamanho do array, alguns caso só tem 1 star
+
             this.countStars = +this.githubService.calcStars(headerLink);
 
             this.callbackSetStars.emit({ username: this.username, quantity: (this.countStars || 0) });
