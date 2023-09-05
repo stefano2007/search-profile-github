@@ -46,6 +46,8 @@ export class SearchComponent implements OnInit {
     }
     this.startLoading();
 
+    this.updateUrl();
+
     this.clearInput();
     this.githubService
         .getUsersBySearchQuery(this.searchText, this.pageSize, this.page, this.selectedSort)
@@ -55,6 +57,12 @@ export class SearchComponent implements OnInit {
             this.closeLoading();
         });
         // TODO: verificar metod caso der erro fechar o loading
+  }
+
+  updateUrl(){
+    const url = new URL(window.location.href);
+    url.searchParams.set('q', this.searchText);
+    window.history.pushState({}, '', url);
   }
 
   startLoading = () => this.isLoading = true;
@@ -109,7 +117,7 @@ export class SearchComponent implements OnInit {
     let itemsTemp = this.userSearch.items;
 
     if(inputReposName !== ''){
-      itemsTemp = itemsTemp.filter(u => u.repos?.some(repo => repo.name.includes(inputReposName)));
+      itemsTemp = itemsTemp.filter(u => u.repos?.some(repo => repo.name.toUpperCase().includes(inputReposName.toUpperCase())));
     }
 
     if(starsRange > 0){

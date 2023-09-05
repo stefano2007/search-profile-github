@@ -28,7 +28,7 @@ export class GithubService {
       }
     });
 
-    if(params_order_by){
+    if(params_order_by && params_order_by !== undefined ){
       queryParams = queryParams.set('sort', params_order_by.sort);
       queryParams = queryParams.set('order', params_order_by.order);
     }
