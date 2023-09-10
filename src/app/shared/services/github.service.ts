@@ -16,7 +16,7 @@ export class GithubService {
   //Hearder Default
   headersRequest = new HttpHeaders({
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${environment.github_Token}`
+    'Authorization': `Basic ${environment.github_Token}`
   });
 
   getUsersBySearchQuery(query: string, per_page: number, page: number, params_order_by : any): Observable<UserSearch>{

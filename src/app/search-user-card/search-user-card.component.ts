@@ -1,7 +1,7 @@
 import { UserRepos } from './../shared/interfaces/user-repos';
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { User } from '../shared/interfaces/user';
-import { GithubService } from '../shared/services/github.service.service';
+import { GithubService } from '../shared/services/github.service';
 import { tap } from 'rxjs';
 
 @Component({

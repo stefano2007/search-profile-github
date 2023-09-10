@@ -1,7 +1,7 @@
 import { UserCountRepos } from '../shared/interfaces/user-count-repos';
 import { UserCountStar } from '../shared/interfaces/user-count-star';
 import { UserSearch } from './../shared/interfaces/user-search';
-import { GithubService } from './../shared/services/github.service.service';
+import { GithubService } from '../shared/services/github.service';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
