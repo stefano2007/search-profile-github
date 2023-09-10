@@ -63,7 +63,7 @@
       (callbackSetRepos)="setRepositories($event)"></app-search-user-card>
     </div>
     <div class="d-flex justify-content-center">
-      <ngb-pagination
+      <ngb-pagination *ngIf="userSearch.items.length >0 "
       [(page)]="page"
       [pageSize]="pageSize"
       [collectionSize]="userSearch.total_count"

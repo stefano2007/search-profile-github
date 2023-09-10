@@ -41,18 +41,19 @@ export class SearchUserCardComponent implements OnInit {
   getStarsByUsername(){
     this.githubService
         .getStarsByUsername(this.username.trim())
-        .pipe(
-          tap((response) => {
-            let headerLink =  response.headers.get('Link')
-
-            //let stars = headerLink != undefined ? this.githubService.calcStars(headerLink) : response.lenght;
-            //Todo: verfica quando não existir p Header link conta o tamanho do array, alguns caso só tem 1 star
-
-            this.countStars = +this.githubService.calcStars(headerLink);
+        .subscribe({
+          next: (response) =>{
+            let headerLink =  response.headers.get('Link');
+            //Verfica quando não existir no Header campo Link pode conter zero ou 1 estrela
+            if(headerLink != undefined)
+              this.countStars = +this.githubService.calcStars(headerLink);
+            else
+              this.countStars = response.body.length > 0 ? 1 : 0;
 
             this.callbackSetStars.emit({ username: this.username, quantity: (this.countStars || 0) });
-        })
-        ).subscribe();
+          },
+          error: (error) => console.error(error)
+        });
   }
 
   getRepositoriesByUsername(){

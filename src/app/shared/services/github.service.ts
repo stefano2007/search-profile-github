@@ -56,7 +56,7 @@ export class GithubService {
   }
 
   getStarsByUsername(username: string): Observable<any> {
-    //TODO: Tenta Obter a primeira estrela, caso exista no header campo Link terá a ultima, pagina correspondente a numero de estrelas já que pedimos 1 registro por pagina.
+    //Ao obter 1 registro e existe N retorna um Header chamado Link com a ultima pagina igual a quantidade total de estrelas
     return this.httpClient
       .get<any>(`${environment.url_API}/users/${username}/starred?per_page=1`,{
         observe: 'response',
@@ -84,7 +84,6 @@ export class GithubService {
     if(!urlLastPage){
       return '0';
     }
-
     //TODO: Revisar logica
     urlLastPage = urlLastPage.split(';')[0]?.replace('<','').replace('>','');
 

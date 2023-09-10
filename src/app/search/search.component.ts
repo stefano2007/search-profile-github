@@ -32,6 +32,7 @@ export class SearchComponent implements OnInit {
 
   searchReposName : string='';
   starIndexFilter : number = 0;
+
   constructor(private route : ActivatedRoute, private githubService :GithubService){}
 
   ngOnInit(): void {
@@ -45,18 +46,22 @@ export class SearchComponent implements OnInit {
       return;
     }
     this.startLoading();
-
     this.updateUrl();
 
-    this.clearInput();
+    this.clearInputsSubQuery();
     this.githubService
         .getUsersBySearchQuery(this.searchText, this.pageSize, this.page, this.selectedSort)
-        .subscribe((response: UserSearch) => {
+        .subscribe({
+          next: (response: UserSearch) => {
             this.userSearch = response;
             this.userSearchOriginal = this.userSearch;
+          },
+          error: (error) => {
+            console.error(error);
             this.closeLoading();
+          },
+          complete: () => {this.closeLoading();}
         });
-        // TODO: verificar metod caso der erro fechar o loading
   }
 
   updateUrl(){
@@ -65,13 +70,9 @@ export class SearchComponent implements OnInit {
     window.history.pushState({}, '', url);
   }
 
-  startLoading = () => this.isLoading = true;
+  startLoading= () => this.isLoading = true;
 
-  closeLoading() : void {
-    setTimeout(() => {
-      this.isLoading = false;
-    }, 500);
-  }
+  closeLoading= () => this.isLoading = false;
 
   setStars(userStar: UserCountStar){
     let index = this.userSearch.items.findIndex(u => u.login == userStar.username);
@@ -152,7 +153,8 @@ export class SearchComponent implements OnInit {
     }
   }
 
-  clearInput(){
+  clearInputsSubQuery(){
+    this.selectedSort = undefined;
     this.searchReposName = '';
     this.starIndexFilter = 0;
   }
