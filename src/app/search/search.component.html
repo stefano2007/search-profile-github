@@ -56,20 +56,25 @@
     </div>
   </div>
   <div *ngIf="!isLoading">
-    <div class="row my-3" *ngFor="let item of userSearch.items">
-      <app-search-user-card
-      [username]="item.login"
-      (callbackSetStars)="setStars($event)"
-      (callbackSetRepos)="setRepositories($event)"></app-search-user-card>
+    <div class="d-flex justify-content-center h4" *ngIf="userSearch.items.length ==0">
+      <i class="fa-solid fa-magnifying-glass me-2"></i> No results found.
     </div>
-    <div class="d-flex justify-content-center">
-      <ngb-pagination *ngIf="userSearch.items.length >0 "
-      [(page)]="page"
-      [pageSize]="pageSize"
-      [collectionSize]="userSearch.total_count"
-      (pageChange)="changePage($event)"
-      [maxSize]="5"
-      ></ngb-pagination>
-     </div>
+    <div *ngIf="userSearch.items.length >0 ">
+      <div class="row my-3" *ngFor="let item of userSearch.items">
+        <app-search-user-card
+        [username]="item.login"
+        (callbackSetStars)="setStars($event)"
+        (callbackSetRepos)="setRepositories($event)"></app-search-user-card>
+      </div>
+      <div class="d-flex justify-content-center">
+        <ngb-pagination *ngIf="userSearch.items.length >0 "
+        [(page)]="page"
+        [pageSize]="pageSize"
+        [collectionSize]="userSearch.total_count"
+        (pageChange)="changePage($event)"
+        [maxSize]="5"
+        ></ngb-pagination>
+      </div>
+    </div>
   </div>
 </div>

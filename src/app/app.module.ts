@@ -10,6 +10,9 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { HomeComponent } from './home/home.component';
 import { SearchComponent } from './search/search.component';
 import { SearchUserCardComponent } from './search-user-card/search-user-card.component';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+
+import { ToastrModule } from 'ngx-toastr';
 
 @NgModule({
   declarations: [
@@ -24,6 +27,8 @@ import { SearchUserCardComponent } from './search-user-card/search-user-card.com
     NgbModule,
     HttpClientModule,
     FormsModule,
+    BrowserAnimationsModule,
+    ToastrModule.forRoot(),
   ],
   providers: [],
   bootstrap: [AppComponent]

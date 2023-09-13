@@ -1,3 +1,4 @@
+import { MessageService, MessageType } from './../shared/services/message.service';
 import { UserCountRepos } from '../shared/interfaces/user-count-repos';
 import { UserCountStar } from '../shared/interfaces/user-count-star';
 import { UserSearch } from './../shared/interfaces/user-search';
@@ -33,7 +34,9 @@ export class SearchComponent implements OnInit {
   searchReposName : string='';
   starIndexFilter : number = 0;
 
-  constructor(private route : ActivatedRoute, private githubService :GithubService){}
+  constructor(private route : ActivatedRoute,
+             private githubService :GithubService,
+             private messageService : MessageService){}
 
   ngOnInit(): void {
     this.searchText = this.route.snapshot.queryParamMap.get('q') ?? '';
@@ -55,9 +58,13 @@ export class SearchComponent implements OnInit {
           next: (response: UserSearch) => {
             this.userSearch = response;
             this.userSearchOriginal = this.userSearch;
+            this.userSearch.total_count > 0
+              ? this.messageService.showMessage('Sucess',`found ${this.userSearch.total_count} records`)
+              : this.messageService.showMessage('Warning','no records found', MessageType.info);
           },
           error: (error) => {
             console.error(error);
+            this.messageService.showMessage('Error','an error has occurred', MessageType.error);
             this.closeLoading();
           },
           complete: () => {this.closeLoading();}
@@ -158,4 +165,6 @@ export class SearchComponent implements OnInit {
     this.searchReposName = '';
     this.starIndexFilter = 0;
   }
+
+
 }
