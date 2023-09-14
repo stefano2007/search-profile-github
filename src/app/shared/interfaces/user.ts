@@ -12,4 +12,6 @@ export interface User {
   following: number;
   created_at: Date;
   updated_at: Date;
+  /* campo auxiliares */
+  lastUpdate_at?: string;
 }

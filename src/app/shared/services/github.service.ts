@@ -6,6 +6,9 @@ import { catchError, retry, tap } from 'rxjs/operators';
 import { User } from '../interfaces/user';
 import { UserSearch } from '../interfaces/user-search';
 import { UserRepos } from '../interfaces/user-repos';
+import { UserSearchItem } from '../interfaces/user-search-item';
+import { db } from '../db/db';
+
 
 @Injectable({
   providedIn: 'root'
@@ -108,5 +111,14 @@ export class GithubService {
     return throwError(() => {
       return errorMessage;
     });
+  }
+  async saveUserDB(user : User){
+    let userCreate = {... user, lastUpdate_at: new Date().toISOString()};
+    let result = await db.tbUsers.put(userCreate);
+  }
+
+  async saveUserSearchItemDB(userSearchItem : UserSearchItem){
+    let userSearchItemCreate = {... userSearchItem, lastUpdate_at: new Date().toISOString()}
+    let result = await db.tbUserSearchItems.put(userSearchItemCreate);
   }
 }

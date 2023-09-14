@@ -9,4 +9,5 @@ export interface UserSearchItem {
   starsQuantity: number;
   reposQuantity: number;
   repos : UserRepos[];
+  lastUpdate_at?: string;
 }

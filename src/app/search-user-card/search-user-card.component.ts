@@ -34,6 +34,7 @@ export class SearchUserCardComponent implements OnInit {
             this.user = response;
             this.getStarsByUsername();
             this.getRepositoriesByUsername();
+            this.githubService.saveUserDB(this.user);
         });
   }
 

@@ -100,6 +100,8 @@ export class SearchComponent implements OnInit {
     if(index >= 0){
       this.userSearch.items[index].reposQuantity = userRepo.quantity;
       this.userSearch.items[index].repos = userRepo.repos;
+
+      this.githubService.saveUserSearchItemDB(this.userSearch.items[index]);
     }
   }
 
