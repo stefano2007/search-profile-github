@@ -1,3 +1,4 @@
+import { OnlineOfflineService } from './../shared/services/online-offline.service';
 import { MessageService, MessageType } from './../shared/services/message.service';
 import { UserCountRepos } from '../shared/interfaces/user-count-repos';
 import { UserCountStar } from '../shared/interfaces/user-count-star';
@@ -36,7 +37,12 @@ export class SearchComponent implements OnInit {
 
   constructor(private route : ActivatedRoute,
              private githubService :GithubService,
-             private messageService : MessageService){}
+             private messageService : MessageService,
+             private onlineOfflineService :OnlineOfflineService
+             )
+  {
+    this.ouvirStatusConexao();
+  }
 
   ngOnInit(): void {
     this.searchText = this.route.snapshot.queryParamMap.get('q') ?? '';
@@ -64,7 +70,7 @@ export class SearchComponent implements OnInit {
           },
           error: (error) => {
             console.error(error);
-            this.messageService.showMessage('Error','an error has occurred', MessageType.error);
+            //this.messageService.showMessage('Error','an error has occurred', MessageType.error);
             this.closeLoading();
           },
           complete: () => {this.closeLoading();}
@@ -166,5 +172,18 @@ export class SearchComponent implements OnInit {
     this.starIndexFilter = 0;
   }
 
+  ouvirStatusConexao(){
+    this.onlineOfflineService
+      .statusConnect
+      .subscribe({
+        next: (isOnline) => {
+          if(isOnline){
+            this.messageService.showMessage('Online','Connection reestablished.', MessageType.info);
+          }else{
+            this.messageService.showMessage('OffLine','There seems to be a problem with the network connection.', MessageType.warning);
+          }
+        }
+      })
+  }
 
 }
