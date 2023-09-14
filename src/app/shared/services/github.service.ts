@@ -1,8 +1,9 @@
+import { OnlineOfflineService } from './online-offline.service';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
-import { Observable, throwError } from 'rxjs';
-import { catchError, retry, tap } from 'rxjs/operators';
+import { Observable, from, throwError } from 'rxjs';
+import { catchError, retry } from 'rxjs/operators';
 import { User } from '../interfaces/user';
 import { UserSearch } from '../interfaces/user-search';
 import { UserRepos } from '../interfaces/user-repos';
@@ -15,7 +16,10 @@ import { db } from '../db/db';
 })
 export class GithubService {
 
-  constructor(private httpClient: HttpClient) { }
+  constructor(
+    private httpClient: HttpClient,
+    private onlineOfflineService: OnlineOfflineService
+    ) { }
   //Hearder Default
   headersRequest = new HttpHeaders({
     'Content-Type': 'application/json',
@@ -23,6 +27,11 @@ export class GithubService {
   });
 
   getUsersBySearchQuery(query: string, per_page: number, page: number, params_order_by : any): Observable<UserSearch>{
+
+    if(!this.onlineOfflineService.isOnline){
+      return this.getUsersBySearchQueryDB(query);
+    }
+
     let queryParams = new HttpParams({
       fromObject: {
         q: query,
@@ -36,6 +45,10 @@ export class GithubService {
       queryParams = queryParams.set('order', params_order_by.order);
     }
 
+    return this.getUsersBySearchQueryAPI(queryParams);
+  }
+
+  getUsersBySearchQueryAPI(queryParams: HttpParams): Observable<UserSearch>{
     return this.httpClient
       .get<UserSearch>(`${environment.url_API}/search/users`,{
         params: queryParams,
@@ -47,7 +60,23 @@ export class GithubService {
       );
   }
 
+  getUsersBySearchQueryDB(query: string): Observable<UserSearch>{
+    return from(
+        db.tbUserSearchItems
+        .where("login").startsWith(query)
+        .toArray()
+        .then<UserSearch>(result => {
+          return { total_count: result.length, incomplete_results: false, items: result }
+        })
+      );
+  }
+
   getUserByUsername(username: string): Observable<User>{
+
+    if(!this.onlineOfflineService.isOnline){
+      return this.getUserByUsernameDB(username);
+    }
+
     return this.httpClient
       .get<User>(`${environment.url_API}/users/${username}`,{
         headers: this.headersRequest
@@ -56,6 +85,25 @@ export class GithubService {
         retry(0),
         catchError(this.handleError)
       );
+  }
+
+  getUserByUsernameAPI(username: string): Observable<User>{
+    return this.httpClient
+      .get<User>(`${environment.url_API}/users/${username}`,{
+        headers: this.headersRequest
+      })
+      .pipe(
+        retry(0),
+        catchError(this.handleError)
+      );
+  }
+
+  getUserByUsernameDB(username: string): Observable<User | any>{
+    return from(
+      db.tbUsers
+      .where("login").startsWith(username)
+      .first()
+    );
   }
 
   getStarsByUsername(username: string): Observable<any> {
@@ -113,12 +161,18 @@ export class GithubService {
     });
   }
   async saveUserDB(user : User){
+
+    if(!this.onlineOfflineService.isOnline) return;
+
     let userCreate = {... user, lastUpdate_at: new Date().toISOString()};
-    let result = await db.tbUsers.put(userCreate);
+    await db.tbUsers.put(userCreate);
   }
 
   async saveUserSearchItemDB(userSearchItem : UserSearchItem){
+    if(!this.onlineOfflineService.isOnline) return;
+
     let userSearchItemCreate = {... userSearchItem, lastUpdate_at: new Date().toISOString()}
-    let result = await db.tbUserSearchItems.put(userSearchItemCreate);
+    await db.tbUserSearchItems.put(userSearchItemCreate);
   }
+
 }
