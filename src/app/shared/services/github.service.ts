@@ -26,7 +26,7 @@ export class GithubService {
 
   getUsersBySearchQuery(query: string, per_page: number, page: number, params_order_by : any): Observable<UserSearch>{
     if(!this.onlineOfflineService.isOnline){
-      return this.getUsersBySearchQueryDB(query);
+      return this.getUsersBySearchQueryDB(query, per_page, page, params_order_by);
     }
 
     let queryParams = new HttpParams({
@@ -57,10 +57,14 @@ export class GithubService {
       );
   }
 
-  getUsersBySearchQueryDB(query: string): Observable<UserSearch>{
+  getUsersBySearchQueryDB(query: string, per_page: number, page: number, params_order_by : any): Observable<UserSearch>{
+    //TODO: Adicionar ordenação com parametro params_order_by
+    //TODO: Filtrar por nome, para isso precisa obter o nome do endpoint de detalhes do usuario
     return from(
         db.tbUserSearchItems
         .where("login").startsWith(query)
+        .offset((page -1) * per_page)
+        .limit(per_page)
         .toArray()
         .then<UserSearch>(result => {
           return { total_count: result.length, incomplete_results: false, items: result }

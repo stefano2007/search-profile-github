@@ -9,11 +9,18 @@ import { Component, OnInit } from '@angular/core';
 export class NavbarComponent implements OnInit {
 
   theme: Theme = Theme.Light;
+  isOnline : boolean = true;
 
   constructor(private onlineOfflineService:OnlineOfflineService){}
 
   ngOnInit(){
     this.checkTheme();
+    this.updateIsOnline();
+    this.ouvirStatusConexao();
+  }
+
+  updateIsOnline(){
+    this.isOnline = this.onlineOfflineService.isOnline;
   }
 
   checkTheme(){
@@ -36,7 +43,15 @@ export class NavbarComponent implements OnInit {
     document.querySelector('html')?.setAttribute('data-bs-theme', this.theme.toString());
   }
 
-
+  ouvirStatusConexao(){
+    this.onlineOfflineService
+      .statusConnect
+      .subscribe({
+        next: (isOnline) => {
+          this.updateIsOnline();
+        }
+      });
+  }
 }
 
 enum Theme{

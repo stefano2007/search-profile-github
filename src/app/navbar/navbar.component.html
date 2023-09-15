@@ -14,9 +14,12 @@
       </ul>
       <div class="d-flex">
         <div class="icon-menu">
-          <i class="fa-solid fa-wifi"></i>
+          <span>Status Network:</span>
+          <i *ngIf="isOnline" class="fa-solid fa-wifi"></i>
+          <i *ngIf="!isOnline" class="fa-solid fa-thumbs-down"></i>
         </div>
         <div class="icon-menu">
+          <span>Theme:</span>
           <i *ngIf="theme == 'light'" class="fa-regular fa-lightbulb" (click)="updateTheme()"></i>
           <i *ngIf="theme == 'dark'" class="fa-solid fa-sun" (click)="updateTheme()"></i>
         </div>
