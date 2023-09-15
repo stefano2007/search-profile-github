@@ -3,31 +3,28 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 import { Observable, from, throwError } from 'rxjs';
-import { catchError, retry } from 'rxjs/operators';
+import { catchError, map, retry } from 'rxjs/operators';
 import { User } from '../interfaces/user';
 import { UserSearch } from '../interfaces/user-search';
 import { UserRepos } from '../interfaces/user-repos';
 import { UserSearchItem } from '../interfaces/user-search-item';
 import { db } from '../db/db';
 
-
 @Injectable({
   providedIn: 'root'
 })
 export class GithubService {
-
-  constructor(
-    private httpClient: HttpClient,
-    private onlineOfflineService: OnlineOfflineService
-    ) { }
-  //Hearder Default
   headersRequest = new HttpHeaders({
     'Content-Type': 'application/json',
     'Authorization': `Basic ${environment.github_Token}`
   });
 
-  getUsersBySearchQuery(query: string, per_page: number, page: number, params_order_by : any): Observable<UserSearch>{
+  constructor(
+    private httpClient: HttpClient,
+    private onlineOfflineService: OnlineOfflineService
+    ) { }
 
+  getUsersBySearchQuery(query: string, per_page: number, page: number, params_order_by : any): Observable<UserSearch>{
     if(!this.onlineOfflineService.isOnline){
       return this.getUsersBySearchQueryDB(query);
     }
@@ -72,19 +69,11 @@ export class GithubService {
   }
 
   getUserByUsername(username: string): Observable<User>{
-
     if(!this.onlineOfflineService.isOnline){
       return this.getUserByUsernameDB(username);
     }
 
-    return this.httpClient
-      .get<User>(`${environment.url_API}/users/${username}`,{
-        headers: this.headersRequest
-      })
-      .pipe(
-        retry(0),
-        catchError(this.handleError)
-      );
+    return this.getUserByUsernameAPI(username);
   }
 
   getUserByUsernameAPI(username: string): Observable<User>{
@@ -101,33 +90,82 @@ export class GithubService {
   getUserByUsernameDB(username: string): Observable<User | any>{
     return from(
       db.tbUsers
-      .where("login").startsWith(username)
+      .where("login").equals(username)
       .first()
     );
   }
 
-  getStarsByUsername(username: string): Observable<any> {
-    //Ao obter 1 registro e existe N retorna um Header chamado Link com a ultima pagina igual a quantidade total de estrelas
-    return this.httpClient
-      .get<any>(`${environment.url_API}/users/${username}/starred?per_page=1`,{
-        observe: 'response',
-        headers: this.headersRequest
-      })
-      .pipe(
-        retry(0),
-        catchError(this.handleError)
-      );
+  getStarsByUsername(username: string): Observable<number> {
+    if(!this.onlineOfflineService.isOnline){
+      return this.getStarsByUsernameDB(username);
+    }
+
+    return this.getStarsByUsernameAPI(username);
   }
 
-  getRepositoriesByUsername(username: string): Observable<any> {
+  getStarsByUsernameAPI(username: string): Observable<number> {
+    //Ao obter 1 registro e existe N retorna um Header chamado Link com a ultima pagina igual a quantidade total de estrelas
     return this.httpClient
-      .get<UserRepos[]>(`${environment.url_API}/users/${username}/repos`,{
-        headers: this.headersRequest
+    .get<any>(`${environment.url_API}/users/${username}/starred?per_page=1`,{
+      observe: 'response',
+      headers: this.headersRequest
+    })
+    .pipe(
+      map(response =>{
+        let countStars : number = 0;
+        let headerLink =  response.headers.get('Link');
+        //Verfica quando não existir no Header campo Link pode conter zero ou 1 estrela
+        if(headerLink != undefined)
+          countStars = +this.calcStars(headerLink);
+        else
+          countStars = response.body.length > 0 ? 1 : 0;
+
+        return countStars;
+      }),
+      retry(0),
+      catchError(this.handleError)
+    );
+  }
+
+  getStarsByUsernameDB(username: string): Observable<number> {
+    return from(
+      db.tbUserSearchItems
+      .where("login").equals(username)
+      .first()
+      .then(user => {
+        return user?.starsQuantity ?? 0;
       })
-      .pipe(
-        retry(0),
-        catchError(this.handleError)
-      );
+    );
+  }
+
+  getRepositoriesByUsername(username: string): Observable<UserRepos[]> {
+    if(!this.onlineOfflineService.isOnline){
+      return this.getRepositoriesByUsernameDB(username);
+    }
+
+    return this.getRepositoriesByUsernameAPI(username);
+  }
+
+  getRepositoriesByUsernameAPI(username: string): Observable<UserRepos[]> {
+    return this.httpClient
+    .get<UserRepos[]>(`${environment.url_API}/users/${username}/repos`,{
+      headers: this.headersRequest
+    })
+    .pipe(
+      retry(0),
+      catchError(this.handleError)
+    );
+  }
+
+  getRepositoriesByUsernameDB(username: string): Observable<UserRepos[]> {
+    return from(
+      db.tbUserSearchItems
+      .where("login").equals(username)
+      .first()
+      .then(user => {
+        return user?.repos ?? [];
+      })
+    );
   }
 
   calcStars(headerLink: string) : string{
@@ -160,8 +198,8 @@ export class GithubService {
       return errorMessage;
     });
   }
-  async saveUserDB(user : User){
 
+  async saveUserDB(user : User){
     if(!this.onlineOfflineService.isOnline) return;
 
     let userCreate = {... user, lastUpdate_at: new Date().toISOString()};
@@ -174,5 +212,4 @@ export class GithubService {
     let userSearchItemCreate = {... userSearchItem, lastUpdate_at: new Date().toISOString()}
     await db.tbUserSearchItems.put(userSearchItemCreate);
   }
-
 }

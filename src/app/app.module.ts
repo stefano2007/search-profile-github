@@ -13,13 +13,15 @@ import { SearchUserCardComponent } from './search-user-card/search-user-card.com
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { ToastrModule } from 'ngx-toastr';
+import { NavbarComponent } from './navbar/navbar.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     HomeComponent,
     SearchComponent,
-    SearchUserCardComponent
+    SearchUserCardComponent,
+    NavbarComponent
   ],
   imports: [
     BrowserModule,

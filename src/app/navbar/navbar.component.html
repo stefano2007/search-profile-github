@@ -1,0 +1,26 @@
+<header class="navbar navbar-expand-lg">
+  <div class="container-fluid">
+    <a class="btn title" href="/">
+      <span>
+        <i class="fa-brands fa-github"></i>
+        Github Profile Explorer
+      </span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+      </ul>
+      <div class="d-flex">
+        <div class="icon-menu">
+          <i class="fa-solid fa-wifi"></i>
+        </div>
+        <div class="icon-menu">
+          <i *ngIf="theme == 'light'" class="fa-regular fa-lightbulb" (click)="updateTheme()"></i>
+          <i *ngIf="theme == 'dark'" class="fa-solid fa-sun" (click)="updateTheme()"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
