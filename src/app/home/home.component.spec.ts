@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 
 import { HomeComponent } from './home.component';
+import { ToastrModule } from 'ngx-toastr';
 
 describe('HomeComponent', () => {
   let component: HomeComponent;
@@ -11,7 +12,8 @@ describe('HomeComponent', () => {
     TestBed.configureTestingModule({
       declarations: [HomeComponent],
       imports: [
-        FormsModule
+        FormsModule,
+        ToastrModule.forRoot(),
       ]
     });
     fixture = TestBed.createComponent(HomeComponent);

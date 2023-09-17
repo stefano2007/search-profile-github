@@ -54,9 +54,9 @@ export class SearchComponent implements OnInit {
   }
 
   searchSubmit(){
-    /*if(this.searchText.trim().length === 0){
+    if(this.searchText.trim().length === 0){
       return;
-    }*/
+    }
     this.startLoading();
     this.updateUrl();
 
