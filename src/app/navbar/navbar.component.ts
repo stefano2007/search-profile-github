@@ -23,11 +23,11 @@ export class NavbarComponent implements OnInit {
     this.isOnline = this.onlineOfflineService.isOnline;
   }
 
+  lsThema : string = 'thema';
   checkTheme(){
-    let themeLocalStorage = localStorage.getItem('theme');
-
-    if(!themeLocalStorage){
-      this.setTheme(Theme.Light);
+    let themeLocalStorage = localStorage.getItem(this.lsThema);
+    if(!!themeLocalStorage){
+      this.setTheme(themeLocalStorage as Theme);
     }
   }
 
@@ -39,8 +39,10 @@ export class NavbarComponent implements OnInit {
 
   setTheme(theme: Theme){
     this.theme = theme;
-    localStorage.setItem('data-bs-theme', this.theme.toString());
-    document.querySelector('html')?.setAttribute('data-bs-theme', this.theme.toString());
+    localStorage.setItem(this.lsThema, this.theme.toString());
+    document
+        .querySelector('html')
+        ?.setAttribute('data-bs-theme', this.theme.toString());
   }
 
   ouvirStatusConexao(){

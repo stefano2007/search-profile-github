@@ -12,7 +12,7 @@
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
       </ul>
-      <div class="d-flex">
+      <div class="d-flex align-items-center">
         <div class="icon-menu">
           <span>Status Network:</span>
           <i *ngIf="isOnline" class="fa-solid fa-wifi"></i>
@@ -20,8 +20,10 @@
         </div>
         <div class="icon-menu">
           <span>Theme:</span>
-          <i *ngIf="theme == 'light'" class="fa-regular fa-lightbulb" (click)="updateTheme()"></i>
-          <i *ngIf="theme == 'dark'" class="fa-solid fa-sun" (click)="updateTheme()"></i>
+          <a class="btn" (click)="updateTheme()">
+            <i *ngIf="theme == 'light'" class="fa-regular fa-lightbulb"></i>
+            <i *ngIf="theme == 'dark'" class="fa-solid fa-sun"></i>
+          </a>
         </div>
       </div>
     </div>

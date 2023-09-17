@@ -11,6 +11,7 @@ import { GithubService } from '../shared/services/github.service';
 export class SearchUserCardComponent implements OnInit {
 
   @Input() username :string = '';
+  @Output() callbackSetUser = new EventEmitter();
   @Output() callbackSetStars = new EventEmitter();
   @Output() callbackSetRepos = new EventEmitter();
 
@@ -32,8 +33,8 @@ export class SearchUserCardComponent implements OnInit {
         .getUserByUsername(this.username.trim())
         .subscribe((response: User) => {
             this.user = response;
+            this.callbackSetUser.emit(this.user);
             this.getStarsByUsername();
-            this.getRepositoriesByUsername();
             this.githubService.saveUserDB(this.user);
         });
   }
@@ -45,6 +46,8 @@ export class SearchUserCardComponent implements OnInit {
           next: (stars) =>{
             this.countStars = stars;
             this.callbackSetStars.emit({ username: this.username, quantity: (this.countStars || 0) });
+
+            this.getRepositoriesByUsername();
           },
           error: (error) => console.error(error)
         });

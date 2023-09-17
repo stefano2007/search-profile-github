@@ -1,3 +1,4 @@
+import { User } from "./user";
 import { UserRepos } from "./user-repos";
 
 export interface UserSearchItem {
@@ -6,6 +7,7 @@ export interface UserSearchItem {
   url: string;
   html_url: string;
   /* campo auxiliares */
+  user: User;
   starsQuantity: number;
   reposQuantity: number;
   repos : UserRepos[];

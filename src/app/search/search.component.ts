@@ -3,9 +3,11 @@ import { MessageService, MessageType } from './../shared/services/message.servic
 import { UserCountRepos } from '../shared/interfaces/user-count-repos';
 import { UserCountStar } from '../shared/interfaces/user-count-star';
 import { UserSearch } from './../shared/interfaces/user-search';
+import { User } from './../shared/interfaces/user';
 import { GithubService } from '../shared/services/github.service';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import ErrorGithub from '../shared/interfaces/error-github';
 
 @Component({
   selector: 'app-search',
@@ -13,15 +15,13 @@ import { ActivatedRoute } from '@angular/router';
   styleUrls: ['./search.component.css']
 })
 export class SearchComponent implements OnInit {
+  _userSearchEmpty: UserSearch = { total_count: 0, incomplete_results: false, items: [] };
+  userSearch : UserSearch = { ...this._userSearchEmpty };
+  userSearchOriginal : any = {};
+
   searchText : string='';
   pageSize: number = 10;
   page: number = 1;
-
-  userSearch : UserSearch = { total_count: 0, incomplete_results: false, items: [] };
-  userSearchOriginal : any = {};
-
-  isLoading : boolean = false;
-
   selectedSort: any;
   sortOptions: any = [
     { name: "Most followers", options: { sort: "followers", order: "desc" } },
@@ -35,13 +35,16 @@ export class SearchComponent implements OnInit {
   searchReposName : string='';
   starIndexFilter : number = 0;
 
-  constructor(private route : ActivatedRoute,
-             private githubService :GithubService,
-             private messageService : MessageService,
-             private onlineOfflineService :OnlineOfflineService
+  isLoading : boolean = false;
+  isOnline: boolean = false;
+  constructor(private route: ActivatedRoute,
+             private githubService: GithubService,
+             private messageService: MessageService,
+             private onlineOfflineService: OnlineOfflineService
              )
   {
     this.ouvirStatusConexao();
+    this.isOnline= this.onlineOfflineService.isOnline;
   }
 
   ngOnInit(): void {
@@ -51,9 +54,9 @@ export class SearchComponent implements OnInit {
   }
 
   searchSubmit(){
-    if(this.searchText.trim().length === 0){
+    /*if(this.searchText.trim().length === 0){
       return;
-    }
+    }*/
     this.startLoading();
     this.updateUrl();
 
@@ -69,12 +72,37 @@ export class SearchComponent implements OnInit {
               : this.messageService.showMessage('Warning','no records found', MessageType.info);
           },
           error: (error) => {
-            console.error(error);
-            //this.messageService.showMessage('Error','an error has occurred', MessageType.error);
+            this.errorMessage(error);
+            this.clearSearch();
             this.closeLoading();
           },
           complete: () => {this.closeLoading();}
         });
+  }
+
+  errorMessage(error: any){
+    if(error.status == '0'){
+
+      this.messageService
+        .showMessage(`There seems to be a problem with the network connection.`
+          ,`Details: ${error.message}`
+          , MessageType.error);
+    } else if(error.status == '422'){
+
+      let errorGithub = error.error as ErrorGithub;
+      this.messageService
+        .showMessage(`Error ${errorGithub.message}`
+          ,`Details: ${errorGithub.errors.map(err => `resource "${err.resource}" - field "${err.field}" - code "${err.code}`).join(', ')}"`
+          , MessageType.error);
+    } else {
+      this.messageService.showMessage('Error','an error has occurred', MessageType.error);
+    }
+    console.error(error);
+  }
+
+  clearSearch(){
+    this.userSearch = { ...this._userSearchEmpty };
+    this.userSearchOriginal = [];
   }
 
   updateUrl(){
@@ -105,6 +133,13 @@ export class SearchComponent implements OnInit {
     }
   }
 
+  setUser(userInset: User){
+    let index = this.userSearch.items.findIndex(u => u.login == userInset.login);
+    if(index >= 0){
+      this.userSearch.items[index].user = userInset;
+    }
+  }
+
   changePage(page: number){
     this.page = page;
     this.searchSubmit();
@@ -120,7 +155,6 @@ export class SearchComponent implements OnInit {
 
   execFilter(){
     let inputReposName = this.searchReposName.trim();
-
     let starsRange = this.getStarsRange(this.starIndexFilter);
 
     if(inputReposName == '' && starsRange === 0 ){
@@ -169,7 +203,6 @@ export class SearchComponent implements OnInit {
   }
 
   clearInputsSubQuery(){
-    this.selectedSort = undefined;
     this.searchReposName = '';
     this.starIndexFilter = 0;
   }
@@ -179,13 +212,13 @@ export class SearchComponent implements OnInit {
       .statusConnect
       .subscribe({
         next: (isOnline) => {
+          this.isOnline= isOnline;
           if(isOnline){
             this.messageService.showMessage('Online','Connection reestablished.', MessageType.info);
           }else{
             this.messageService.showMessage('OffLine','There seems to be a problem with the network connection.', MessageType.warning);
           }
         }
-      })
+      });
   }
-
 }

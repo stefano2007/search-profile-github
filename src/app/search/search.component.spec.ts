@@ -3,6 +3,7 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from "@angular/common/http/testing";
 
 import { FormsModule } from '@angular/forms';
+import { ToastrModule } from 'ngx-toastr';
 
 import { SearchComponent } from './search.component';
 
@@ -17,6 +18,7 @@ describe('SearchComponent', () => {
         RouterTestingModule,
         HttpClientTestingModule,
         FormsModule,
+        ToastrModule.forRoot(),
       ],
     });
     fixture = TestBed.createComponent(SearchComponent);

@@ -1,14 +1,14 @@
-import { OnlineOfflineService } from './online-offline.service';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
-import { Observable, from, throwError } from 'rxjs';
-import { catchError, map, retry } from 'rxjs/operators';
+import { Observable, from } from 'rxjs';
+import { map, retry } from 'rxjs/operators';
 import { User } from '../interfaces/user';
 import { UserSearch } from '../interfaces/user-search';
 import { UserRepos } from '../interfaces/user-repos';
 import { UserSearchItem } from '../interfaces/user-search-item';
 import { db } from '../db/db';
+import { OnlineOfflineService } from './online-offline.service';
 
 @Injectable({
   providedIn: 'root'
@@ -25,7 +25,7 @@ export class GithubService {
     ) { }
 
   getUsersBySearchQuery(query: string, per_page: number, page: number, params_order_by : any): Observable<UserSearch>{
-    if(!this.onlineOfflineService.isOnline){
+    if(this.searchOffline()){
       return this.getUsersBySearchQueryDB(query, per_page, page, params_order_by);
     }
 
@@ -45,6 +45,47 @@ export class GithubService {
     return this.getUsersBySearchQueryAPI(queryParams);
   }
 
+  getUserByUsername(username: string): Observable<User>{
+    if(this.searchOffline()){
+      return this.getUserByUsernameDB(username);
+    }
+
+    return this.getUserByUsernameAPI(username);
+  }
+
+  getStarsByUsername(username: string): Observable<number> {
+    if(this.searchOffline()){
+      return this.getStarsByUsernameDB(username);
+    }
+
+    return this.getStarsByUsernameAPI(username);
+  }
+
+  getRepositoriesByUsername(username: string): Observable<UserRepos[]> {
+    if(this.searchOffline()){
+      return this.getRepositoriesByUsernameDB(username);
+    }
+
+    return this.getRepositoriesByUsernameAPI(username);
+  }
+
+  calcStars(headerLink: string) : string{
+    let urlLastPage = headerLink?.split(',')[1];
+    if(!urlLastPage){
+      return '0';
+    }
+    //TODO: Revisar logica
+    urlLastPage = urlLastPage.split(';')[0]?.replace('<','').replace('>','');
+
+    let starsCount = urlLastPage.replace(/.*&page=(.*)/, '$1').trim()
+    return starsCount;
+  }
+
+  searchOffline(): boolean{
+    return !this.onlineOfflineService.isOnline;
+  }
+
+  /* init API */
   getUsersBySearchQueryAPI(queryParams: HttpParams): Observable<UserSearch>{
     return this.httpClient
       .get<UserSearch>(`${environment.url_API}/search/users`,{
@@ -52,32 +93,8 @@ export class GithubService {
         headers: this.headersRequest
       })
       .pipe(
-        retry(0),
-        catchError(this.handleError)
+        retry(0)
       );
-  }
-
-  getUsersBySearchQueryDB(query: string, per_page: number, page: number, params_order_by : any): Observable<UserSearch>{
-    //TODO: Adicionar ordenação com parametro params_order_by
-    //TODO: Filtrar por nome, para isso precisa obter o nome do endpoint de detalhes do usuario
-    return from(
-        db.tbUserSearchItems
-        .where("login").startsWith(query)
-        .offset((page -1) * per_page)
-        .limit(per_page)
-        .toArray()
-        .then<UserSearch>(result => {
-          return { total_count: result.length, incomplete_results: false, items: result }
-        })
-      );
-  }
-
-  getUserByUsername(username: string): Observable<User>{
-    if(!this.onlineOfflineService.isOnline){
-      return this.getUserByUsernameDB(username);
-    }
-
-    return this.getUserByUsernameAPI(username);
   }
 
   getUserByUsernameAPI(username: string): Observable<User>{
@@ -86,25 +103,8 @@ export class GithubService {
         headers: this.headersRequest
       })
       .pipe(
-        retry(0),
-        catchError(this.handleError)
+        retry(0)
       );
-  }
-
-  getUserByUsernameDB(username: string): Observable<User | any>{
-    return from(
-      db.tbUsers
-      .where("login").equals(username)
-      .first()
-    );
-  }
-
-  getStarsByUsername(username: string): Observable<number> {
-    if(!this.onlineOfflineService.isOnline){
-      return this.getStarsByUsernameDB(username);
-    }
-
-    return this.getStarsByUsernameAPI(username);
   }
 
   getStarsByUsernameAPI(username: string): Observable<number> {
@@ -126,8 +126,88 @@ export class GithubService {
 
         return countStars;
       }),
-      retry(0),
-      catchError(this.handleError)
+      retry(0)
+    );
+  }
+
+  getRepositoriesByUsernameAPI(username: string): Observable<UserRepos[]> {
+    return this.httpClient
+    .get<UserRepos[]>(`${environment.url_API}/users/${username}/repos`,{
+      headers: this.headersRequest
+    })
+    .pipe(
+      retry(0)
+    );
+  }
+
+  /* init db */
+  async saveUserDB(user : User){
+    if(this.searchOffline()) return;
+
+    let userCreate = {... user, lastUpdate_at: new Date().toISOString()};
+    await db.tbUsers.put(userCreate);
+  }
+
+  async saveUserSearchItemDB(userSearchItem : UserSearchItem){
+    if(this.searchOffline()) return;
+
+    let userSearchItemCreate = {... userSearchItem, lastUpdate_at: new Date().toISOString()}
+    await db.tbUserSearchItems.put(userSearchItemCreate);
+  }
+
+  getUsersBySearchQueryDB(query: string, per_page: number, page: number, params_order_by : any): Observable<UserSearch>{
+    query = query?.toLowerCase();
+
+    return from(
+        db.tbUserSearchItems
+        .filter(u => {
+          return u.login?.toLowerCase().startsWith(query) || u.user?.name?.toLowerCase()?.includes(query);
+        })
+        .offset((page -1) * per_page)
+        .limit(per_page)
+        .toArray()
+        .then<UserSearch>(result => {
+          if(params_order_by && params_order_by !== undefined )
+            result = this.orderUserSearchItem(result, params_order_by);
+
+          return { total_count: result.length, incomplete_results: false, items: result }
+        })
+      );
+  }
+
+  orderUserSearchItem(result : UserSearchItem[],  params_order_by : any){
+
+    if(params_order_by.sort == 'followers'){
+      result = result.sort((a, b) => {
+                        return params_order_by.order == 'asc'
+                          ? a.user?.followers - b.user?.followers
+                          : b.user?.followers - a.user?.followers
+                        });
+    } else if(params_order_by.sort == 'joined'){
+      result = result.sort((a, b) => {
+                        if (a.user?.created_at > b.user?.created_at) {
+                            return params_order_by.order == 'asc' ? 1 : -1;
+                        }
+                        if (b.user?.created_at > a.user?.created_at) {
+                            return params_order_by.order == 'asc' ? -1 : 1;
+                        }
+                        return 0;
+                      });
+    } else if(params_order_by.sort == 'repositories'){
+      result = result.sort((a, b) =>{
+                        return params_order_by.order == 'asc'
+                          ? a.user?.public_repos - b.user?.public_repos
+                          : b.user?.public_repos - a.user?.public_repos
+                      });
+    }
+    return result;
+  }
+
+  getUserByUsernameDB(username: string): Observable<User | any>{
+    return from(
+      db.tbUsers
+      .where("login").equals(username)
+      .first()
     );
   }
 
@@ -142,25 +222,6 @@ export class GithubService {
     );
   }
 
-  getRepositoriesByUsername(username: string): Observable<UserRepos[]> {
-    if(!this.onlineOfflineService.isOnline){
-      return this.getRepositoriesByUsernameDB(username);
-    }
-
-    return this.getRepositoriesByUsernameAPI(username);
-  }
-
-  getRepositoriesByUsernameAPI(username: string): Observable<UserRepos[]> {
-    return this.httpClient
-    .get<UserRepos[]>(`${environment.url_API}/users/${username}/repos`,{
-      headers: this.headersRequest
-    })
-    .pipe(
-      retry(0),
-      catchError(this.handleError)
-    );
-  }
-
   getRepositoriesByUsernameDB(username: string): Observable<UserRepos[]> {
     return from(
       db.tbUserSearchItems
@@ -170,50 +231,5 @@ export class GithubService {
         return user?.repos ?? [];
       })
     );
-  }
-
-  calcStars(headerLink: string) : string{
-    let urlLastPage = headerLink?.split(',')[1];
-    if(!urlLastPage){
-      return '0';
-    }
-    //TODO: Revisar logica
-    urlLastPage = urlLastPage.split(';')[0]?.replace('<','').replace('>','');
-
-    let starsCount = urlLastPage.replace(/.*&page=(.*)/, '$1').trim()
-
-    return starsCount;
-  }
-
-  // Error handling
-  handleError(error: any) {
-    let errorMessage = '';
-    if (error.error instanceof ErrorEvent) {
-      // Get client-side error
-      errorMessage = error.error.message;
-    } else {
-      // Get server-side error
-      errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
-      if(error.status == '0'){
-        alert(`There seems to be a problem with the network connection. \nDetails: ${error.message}`);
-      }
-    }
-    return throwError(() => {
-      return errorMessage;
-    });
-  }
-
-  async saveUserDB(user : User){
-    if(!this.onlineOfflineService.isOnline) return;
-
-    let userCreate = {... user, lastUpdate_at: new Date().toISOString()};
-    await db.tbUsers.put(userCreate);
-  }
-
-  async saveUserSearchItemDB(userSearchItem : UserSearchItem){
-    if(!this.onlineOfflineService.isOnline) return;
-
-    let userSearchItemCreate = {... userSearchItem, lastUpdate_at: new Date().toISOString()}
-    await db.tbUserSearchItems.put(userSearchItemCreate);
   }
 }
