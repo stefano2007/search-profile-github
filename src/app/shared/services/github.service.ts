@@ -16,7 +16,7 @@ import { OnlineOfflineService } from './online-offline.service';
 export class GithubService {
   headersRequest = new HttpHeaders({
     'Content-Type': 'application/json',
-    'Authorization': `Basic ${environment.github_Token}`
+    'Authorization': `Basic ${window.btoa(environment.github_Token)}`
   });
 
   constructor(
@@ -163,14 +163,17 @@ export class GithubService {
         .filter(u => {
           return u.login?.toLowerCase().startsWith(query) || u.user?.name?.toLowerCase()?.includes(query);
         })
-        .offset((page -1) * per_page)
-        .limit(per_page)
+        //.offset((page -1) * per_page)
+        //.limit(per_page)
         .toArray()
         .then<UserSearch>(result => {
           if(params_order_by && params_order_by !== undefined )
             result = this.orderUserSearchItem(result, params_order_by);
 
-          return { total_count: result.length, incomplete_results: false, items: result }
+            let resultPage = result
+                              .slice((page - 1) * per_page, page * per_page);
+
+            return { total_count: result.length, incomplete_results: false, items: resultPage }
         })
       );
   }
