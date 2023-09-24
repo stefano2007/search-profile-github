@@ -1,0 +1,17 @@
+version: 0.2
+phases:
+  intall:
+    rubtime-versions:
+      nodejs: 12
+    commands:
+      - echo "Installing dependencies..."
+      - npm install
+      - npm install -g @angular/cli@16.2.1
+  build:
+    commands:
+      - echo "Building Angular project..."
+      - ng build
+  post_build:
+    commands:
+      - echo "Updating files in the S3 bucket..."
+      - aws s3 sync dist/search-github/ s3://stefano-website --delete

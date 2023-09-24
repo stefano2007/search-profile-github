@@ -16,7 +16,7 @@ import { OnlineOfflineService } from './online-offline.service';
 export class GithubService {
   headersRequest = new HttpHeaders({
     'Content-Type': 'application/json',
-    'Authorization': `Basic ${window.btoa(environment.github_Token)}`
+    'Authorization': `Basic ${window.atob(environment.github_Token)}`
   });
 
   constructor(
