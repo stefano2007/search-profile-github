@@ -59,6 +59,11 @@ npm install
 ## Running Application
 * Generate a personal key for [API Github](https://docs.github.com/pt/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) and change the parameter "github_Token" in \src\environment\environment.ts
 
+Warning!!! When we upload the api token to github it is automatically recognized by github and invalidated, knowing this we convert the key twice using, for example, the "btoa" function 
+```
+  window.btoa(window.btoa('{GITHUB_TOKEN}'))
+```
+
 Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
 
 ## Running unit tests
